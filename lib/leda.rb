@@ -1,5 +1,7 @@
 require "leda/version"
 
 module Leda
-  # Your code goes here...
+  autoload :Configuration, 'leda/configuration'
+  autoload :DataUnit, 'leda/data_unit'
+  autoload :Store, 'leda/store'
 end
