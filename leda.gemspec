@@ -23,4 +23,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rspec", "~> 3.0"
 
   spec.add_dependency 'activesupport', '>= 3.2'
+
+  # For ES
+  spec.add_dependency 'oj'
 end

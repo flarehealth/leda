@@ -5,6 +5,16 @@ module Leda
   ##
   # Mix-in for defining the set of data needed from a particular backing store
   # in a data unit. E.g., for a relational database it might be a set of tables.
+  #
+  # A store must define the following methods:
+  #
+  #   # Dump the configured data to the specified directory
+  #   # @param [Pathname]
+  #   def dump(directory); end
+  #
+  #   # Restore from the data found in the given directory
+  #   # @param [Pathname]
+  #   def restore_from(directory); end
   module Store
     attr_reader :options
 

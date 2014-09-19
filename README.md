@@ -45,6 +45,13 @@ $ bin/cap production data:providers:dump
 bin/rake data:providers:restore_from[production]
 ```
 
+## Limitations
+
+The current version of this library is tied to Rails (to discover the current
+environment name) and particular libraries (for database configuration). A goal
+for 1.0 would be to factor these things out so that Leda can be used in
+standalone scripts also.
+
 ## Contributing
 
 1. Fork it ( https://github.com/[my-github-username]/leda/fork )
