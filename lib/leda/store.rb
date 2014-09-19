@@ -18,8 +18,16 @@ module Leda
   module Store
     attr_reader :options
 
-    def initialize(options)
+    def initialize(options={})
       @options = options.dup
+    end
+
+    def name
+      self.class.default_name(self.class)
+    end
+
+    def self.default_name(clazz)
+      clazz.name.demodulize.underscore
     end
 
     def self.registered_stores
@@ -27,8 +35,7 @@ module Leda
     end
 
     def self.included(included_into)
-      name = included_into.name.demodulize.underscore
-      register_store(included_into, name)
+      register_store(included_into, default_name(included_into))
     end
 
     def self.register_store(store_class, name)

@@ -6,8 +6,13 @@ module Leda
       @data_units_map = {}
 
       if block_given?
-        dsl.call(self)
+        update(&dsl)
       end
+    end
+
+    def update(&dsl)
+      dsl.call(self)
+      self
     end
 
     def data_unit(name, &dsl)

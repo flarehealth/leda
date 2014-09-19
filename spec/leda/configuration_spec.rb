@@ -33,5 +33,29 @@ module Leda
         expect(providers_postgresql_store.options).to eq({ tables: %w(practices offices practitioners) })
       end
     end
+
+    describe '#update' do
+      let(:configuration) { Configuration.new }
+
+      it 'adds to the existing configuration' do
+        configuration.update do |leda|
+          leda.data_unit 'lookups' do |d|
+            d.postgresql tables: %w(zip_codes)
+          end
+        end
+
+        configuration.update do |leda|
+          leda.data_unit 'people' do |d|
+            d.postgresql tables: %w(people phone_numbers street_addresses)
+          end
+        end
+
+        expect(configuration.data_units.map(&:name)).to eq(%w(lookups people))
+      end
+
+      it 'returns the configuration' do
+        expect(configuration.update { }).to eql(configuration)
+      end
+    end
   end
 end
