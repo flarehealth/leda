@@ -23,7 +23,7 @@ module Leda
     end
 
     def name
-      self.class.default_name(self.class)
+      Store.default_name(self.class)
     end
 
     def self.default_name(clazz)

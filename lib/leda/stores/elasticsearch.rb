@@ -12,15 +12,15 @@ module Leda
       def initialize(*)
         super
 
-        @indices = options[:indices]
+        @indices = options[:indices] || options[:indexes]
       end
 
       def dump(directory)
-        Runner.new(directory, self).dump
+        Runner.new(directory, indices, es_client).dump
       end
 
       def restore_from(directory)
-        Runner.new(directory, self).restore
+        Runner.new(directory, indices, es_client).restore
       end
 
       private
@@ -31,11 +31,12 @@ module Leda
       end
 
       class Runner
-        attr_reader :directory, :host
+        attr_reader :directory, :indices, :es_client
 
-        def initialize(directory, host)
+        def initialize(directory, indices, es_client)
           @directory = directory
-          @host = host
+          @indices = indices
+          @es_client = es_client
         end
 
         def dump
@@ -50,8 +51,8 @@ module Leda
         def restore
           $stderr.puts "Importing from #{echo_fn(directory)} ..."
           indices.each do |index|
-            replace_index(index, directory)
-            bulk_load_records(index, directory)
+            replace_index(index)
+            bulk_load_records(index)
           end
           $stderr.puts "... import complete."
         end
@@ -83,14 +84,14 @@ module Leda
         def dump_mapping(index)
           fn = mapping_filename(index)
           $stderr.puts "  - Dumping mapping for #{index} to #{echo_fn(fn)}"
-          mapping = host.es_client.indices.get_mapping index: index
+          mapping = es_client.indices.get_mapping index: index
           fn.open('w') { |f| f.puts JSON.pretty_generate(mapping) }
         end
 
         def dump_settings(index)
           fn = settings_filename(index)
           $stderr.puts "  - Dumping settings for #{index} to #{echo_fn(fn)}"
-          settings = host.es_client.indices.get_settings index: index
+          settings = es_client.indices.get_settings index: index
           fn.open('w') { |f| f.puts JSON.pretty_generate(settings) }
         end
 
@@ -99,12 +100,12 @@ module Leda
           $stderr.puts "  - Dumping records for #{index} to #{echo_fn(fn)} "
 
           # start the scroll with a search
-          results = host.es_client.search index: index, search_type: 'scan', scroll: '5m', size: 500
+          results = es_client.search index: index, search_type: 'scan', scroll: '5m', size: 500
           total_ct = results['hits']['total']
 
           written_ct = 0
           fn.open('w:utf-8') do |f|
-            while results = host.es_client.scroll(scroll_id: results['_scroll_id'], scroll: '5m') and not results['hits']['hits'].empty?
+            while results = es_client.scroll(scroll_id: results['_scroll_id'], scroll: '5m') and not results['hits']['hits'].empty?
               results['hits']['hits'].each do |hit|
                 f.puts convert_to_bulk_index_rows(hit)
               end
@@ -122,12 +123,12 @@ module Leda
           ]
         end
 
-        def replace_index(index, source_env)
-          map_fn = mapping_filename(index, source_env)
+        def replace_index(index)
+          map_fn = mapping_filename(index)
           $stderr.puts "  - Reading mapping from #{echo_fn(map_fn)}"
           mappings = Oj.load(map_fn.read).values.first # assume only one index
 
-          set_fn = settings_filename(index, source_env)
+          set_fn = settings_filename(index)
           $stderr.puts "  - Reading settings from #{echo_fn(set_fn)}"
           settings = Oj.load(set_fn.read).values.first # assume only one index
 
@@ -135,14 +136,14 @@ module Leda
 
           begin
             $stderr.print "  - Deleting index #{index} ... "
-            host.es_client.indices.delete index: index
+            es_client.indices.delete index: index
             $stderr.puts "done"
           rescue ::Elasticsearch::Transport::Transport::Errors::NotFound
             $stderr.puts "not necessary"
           end
 
-          $stderr.puts "  - Creating index #{index} using settings and mapping from #{source_env}"
-          host.es_client.indices.create index: index, body: body
+          $stderr.puts "  - Creating index #{index} using settings and mapping"
+          es_client.indices.create index: index, body: body
         end
 
         RESTORE_BATCH_DISPATCH_TRIGGER=(1 << 19) # Stay below 1MB per request
@@ -150,8 +151,8 @@ module Leda
         # so long as they are all index ops.
         BULK_LINES_PER_RECORD=2
 
-        def bulk_load_records(index, source_env)
-          fn = bulk_records_filename(index, source_env)
+        def bulk_load_records(index)
+          fn = bulk_records_filename(index)
           $stderr.puts "  - Reading records for #{index} from #{echo_fn(fn)} "
 
           total_ct = 0
@@ -180,7 +181,7 @@ module Leda
         end
 
         def bulk_load_batch(batch)
-          host.es_client.bulk body: batch
+          es_client.bulk body: batch
         end
 
       end

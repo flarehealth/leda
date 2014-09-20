@@ -25,9 +25,9 @@ Or install it yourself as:
 #### Define config/leda.rb
 
 ```
-Leda.configure do |l|
-  l.collection 'providers' do |c|
-    c.postgresql tables: %w(practices offices practitioners)
+Leda.configure do |leda|
+  leda.data_unit 'providers' do |du|
+    du.postgresql tables: %w(practices offices practitioners)
   end
 end
 ```
