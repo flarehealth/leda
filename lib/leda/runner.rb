@@ -4,16 +4,16 @@ module Leda
   ##
   # Actually runs a dump or restore using the store info in a {{Configuration}}.
   class Runner
-    attr_reader :base_dir, :current_env, :configuration
+    attr_reader :current_env, :configuration
 
-    def initialize(base_dir, current_env, configuration)
-      @base_dir = base_dir
+    def initialize(current_env, configuration)
       @current_env = current_env
       @configuration = configuration
+      configuration.base_dir.mkpath
     end
 
     def directory(env, data_unit_name, store_name)
-      base_dir.join(env).join(data_unit_name).join(store_name)
+      configuration.base_dir.join(env).join(data_unit_name).join(store_name)
     end
 
     ##
@@ -21,7 +21,9 @@ module Leda
     # one data unit and/or store type.
     def dump(data_unit_name=nil, store_name=nil)
       each_data_unit_store(data_unit_name, store_name).each do |data_unit, store|
-        store.dump(directory(@current_env, data_unit.name, store.name))
+        dir = directory(@current_env, data_unit.name, store.name)
+        dir.mkpath
+        store.dump(dir)
       end
     end
 

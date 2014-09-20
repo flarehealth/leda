@@ -57,5 +57,20 @@ module Leda
         expect(configuration.update { }).to eql(configuration)
       end
     end
+
+    describe '#base_dir=' do
+      let(:configuration) { Configuration.new }
+
+      it 'coerces a string into a Pathname' do
+        configuration.base_dir = '/foo/quux'
+
+        expect(configuration.base_dir).to eq(Pathname.new('/foo/quux'))
+      end
+
+      it 'leaves a Pathname alone' do
+        configuration.base_dir = Pathname.new('/bar/baz')
+        expect(configuration.base_dir).to eq(Pathname.new('/bar/baz'))
+      end
+    end
   end
 end

@@ -29,6 +29,22 @@ module Leda
       @data_units_map.values
     end
 
+    def base_dir
+      @base_dir or fail "Please set base_dir in your Leda configuration"
+    end
+
+    def base_dir=(path)
+      @base_dir =
+        case path
+        when Pathname
+          path
+        when nil
+          nil
+        else
+          Pathname.new(path.to_s)
+        end
+    end
+
     ##
     # @private
     class DataUnitConfigurator

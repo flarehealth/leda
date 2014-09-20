@@ -41,7 +41,7 @@ module Leda
 
     def create_runner(configuration)
       # TODO: externalize configuration
-      ::Leda::Runner.new(configuration, Rails.env, Rails.root.join('db/leda'))
+      ::Leda::Runner.new(Rails.env, configuration)
     end
 
     def define_dump_task(configuration, outside_prerequisites, description, data_unit_name, store_name)
