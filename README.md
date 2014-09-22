@@ -20,7 +20,7 @@ Or install it yourself as:
 
 ## Usage
 
-### 60 second version (not all working yet)
+### 60 second version
 
 #### Define config/leda.rb
 
@@ -29,6 +29,36 @@ Leda.configure do |leda|
   leda.data_unit 'providers' do |du|
     du.postgresql tables: %w(practices offices practitioners)
   end
+end
+```
+
+#### Create rake tasks
+
+In `lib/tasks/data.rake`:
+
+```
+require 'leda'
+
+load File.expand_path('../../../config/leda.rb', __FILE__)
+
+namespace :data do
+  Leda.define_rake_tasks(:environment)
+end
+```
+
+#### Create cap tasks
+
+(For Capistrano 3 only.)
+
+In `lib/capistrano/tasks/data.cap`:
+
+```
+require 'leda'
+
+load File.expand_path('../../../../config/leda.rb', __FILE__)
+
+namespace :data do
+  Leda.define_capistrano_tasks('data')
 end
 ```
 
@@ -54,7 +84,7 @@ standalone scripts also.
 
 ## Contributing
 
-1. Fork it ( https://github.com/[my-github-username]/leda/fork )
+1. Fork it ( https://github.com/humanpractice/leda/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
