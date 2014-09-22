@@ -1,9 +1,14 @@
 require 'leda'
 
+require 'pathname'
+
 module Leda
   class Configuration
+    attr_reader :base_path
+
     def initialize(&dsl)
       @data_units_map = {}
+      @base_path = Pathname.new('db/leda')
 
       if block_given?
         update(&dsl)
@@ -29,20 +34,33 @@ module Leda
       @data_units_map.values
     end
 
-    def base_dir
-      @base_dir or fail "Please set base_dir in your Leda configuration"
+    def project_root_dir
+      @project_root_dir or fail "Please set project_root_dir in your Leda configuration"
     end
 
-    def base_dir=(path)
-      @base_dir =
-        case path
-        when Pathname
-          path
-        when nil
-          nil
-        else
-          Pathname.new(path.to_s)
-        end
+    def project_root_dir=(path)
+      @project_root_dir = ensure_pathname(path)
+    end
+
+    def base_path=(path)
+      @base_path = ensure_pathname(path)
+    end
+
+    def base_dir
+      project_root_dir + base_path
+    end
+
+    private
+
+    def ensure_pathname(path)
+      case path
+      when Pathname
+        path
+      when nil
+        nil
+      else
+        Pathname.new(path.to_s)
+      end
     end
 
     ##

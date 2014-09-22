@@ -2,6 +2,8 @@ require 'spec_helper'
 
 module Leda
   describe Configuration do
+    let(:configuration) { Configuration.new }
+
     describe 'defined from DSL' do
       let(:actual) do
         Configuration.new do |leda|
@@ -35,8 +37,6 @@ module Leda
     end
 
     describe '#update' do
-      let(:configuration) { Configuration.new }
-
       it 'adds to the existing configuration' do
         configuration.update do |leda|
           leda.data_unit 'lookups' do |d|
@@ -58,18 +58,43 @@ module Leda
       end
     end
 
-    describe '#base_dir=' do
-      let(:configuration) { Configuration.new }
-
+    describe '#project_root_dir=' do
       it 'coerces a string into a Pathname' do
-        configuration.base_dir = '/foo/quux'
+        configuration.project_root_dir = '/foo/quux'
 
-        expect(configuration.base_dir).to eq(Pathname.new('/foo/quux'))
+        expect(configuration.project_root_dir).to eq(Pathname.new('/foo/quux'))
       end
 
       it 'leaves a Pathname alone' do
-        configuration.base_dir = Pathname.new('/bar/baz')
-        expect(configuration.base_dir).to eq(Pathname.new('/bar/baz'))
+        configuration.project_root_dir = Pathname.new('/bar/baz')
+        expect(configuration.project_root_dir).to eq(Pathname.new('/bar/baz'))
+      end
+    end
+
+    describe '#base_path' do
+      it 'defaults to db/leda' do
+        expect(configuration.base_path).to eq(Pathname.new('db/leda'))
+      end
+    end
+
+    describe '#base_path=' do
+      it 'coerces a string into a Pathname' do
+        configuration.base_path = 'foo/quux'
+
+        expect(configuration.base_path).to eq(Pathname.new('foo/quux'))
+      end
+
+      it 'leaves a Pathname alone' do
+        configuration.base_path = Pathname.new('bar/baz')
+        expect(configuration.base_path).to eq(Pathname.new('bar/baz'))
+      end
+    end
+
+    describe '#base_dir' do
+      it 'is the combination of the project root and the base path' do
+        configuration.project_root_dir = '/app-root'
+        configuration.base_path = 'db-data'
+        expect(configuration.base_dir).to eq(Pathname.new('/app-root/db-data'))
       end
     end
   end

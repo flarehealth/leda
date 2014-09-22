@@ -9,11 +9,18 @@ module Leda
     def initialize(current_env, configuration)
       @current_env = current_env
       @configuration = configuration
-      configuration.base_dir.mkpath
     end
 
-    def directory(env, data_unit_name, store_name)
-      configuration.base_dir.join(env).join(data_unit_name).join(store_name)
+    def directory(env, data_unit=nil, store=nil)
+      p = configuration.base_dir.join(env)
+      p = p.join(data_unit.name) if data_unit
+      p = p.join(store.name) if store
+      p
+    end
+
+    def relative_directory(env, data_unit=nil, store=nil)
+      directory(@current_env, data_unit, store).
+        relative_path_from(configuration.project_root_dir)
     end
 
     ##
@@ -21,9 +28,15 @@ module Leda
     # one data unit and/or store type.
     def dump(data_unit_name=nil, store_name=nil)
       each_data_unit_store(data_unit_name, store_name).each do |data_unit, store|
-        dir = directory(@current_env, data_unit.name, store.name)
+        dir = directory(@current_env, data_unit, store)
         dir.mkpath
         store.dump(dir)
+      end
+    end
+
+    def dump_relative_paths(data_unit_name=nil, store_name=nil)
+      each_data_unit_store(data_unit_name, store_name).flat_map do |data_unit, store|
+        relative_directory(@current_env, data_unit, store)
       end
     end
 
@@ -32,7 +45,7 @@ module Leda
     # one data unit and/or store type.
     def restore_from(source_env, data_unit_name=nil, store_name=nil)
       each_data_unit_store(data_unit_name, store_name).each do |data_unit, store|
-        store.restore_from(directory(source_env, data_unit.name, store.name))
+        store.restore_from(directory(source_env, data_unit, store))
       end
     end
 

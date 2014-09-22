@@ -7,5 +7,8 @@ Dir[File.expand_path('../support/*.rb', __FILE__)].each do |support|
   require support
 end
 
-RSpec.configure do
+RSpec.configure do |config|
+  config.include Leda::Spec::Tmpdir
+
+  config.after { rm_tmpdir }
 end

@@ -1,6 +1,7 @@
 require "leda/version"
 
 module Leda
+  autoload :Capistrano, 'leda/capistrano'
   autoload :Configuration, 'leda/configuration'
   autoload :DataUnit, 'leda/data_unit'
   autoload :Rake, 'leda/rake'
@@ -27,6 +28,10 @@ module Leda
 
     def define_rake_tasks(*prerequisites)
       ::Leda::Rake.define_tasks(configuration, prerequisites)
+    end
+
+    def define_capistrano_tasks(rake_task_namespace)
+      ::Leda::Capistrano.define_tasks(configuration, rake_task_namespace)
     end
   end
 end

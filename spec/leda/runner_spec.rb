@@ -2,8 +2,14 @@ require 'spec_helper'
 
 module Leda
   describe Runner do
+    let(:root) { spec_tmpdir }
+    let(:root_s) { root.to_s }
+
     let(:configuration) {
       Configuration.new do |leda|
+        leda.project_root_dir = root
+        leda.base_path = 'base'
+
         leda.data_unit 'tlus' do |du|
           du.mock_c
           du.mock_b
@@ -16,7 +22,7 @@ module Leda
       end
     }
 
-    let(:runner) { Runner.new(Pathname.new('/base'), 'dev', configuration) }
+    let(:runner) { Runner.new('dev', configuration) }
 
     describe '#dump' do
       let(:actual_calls) {
@@ -38,10 +44,10 @@ module Leda
 
         it 'runs dump on every configured store' do
           expect(actual_calls).to eq([
-            ['tlus', 'mock_c', ['/base/dev/tlus/mock_c']],
-            ['tlus', 'mock_b', ['/base/dev/tlus/mock_b']],
-            ['people', 'mock_a', ['/base/dev/people/mock_a']],
-            ['people', 'mock_b', ['/base/dev/people/mock_b']]
+            ['tlus', 'mock_c', [root_s + '/base/dev/tlus/mock_c']],
+            ['tlus', 'mock_b', [root_s + '/base/dev/tlus/mock_b']],
+            ['people', 'mock_a', [root_s + '/base/dev/people/mock_a']],
+            ['people', 'mock_b', [root_s + '/base/dev/people/mock_b']]
           ])
         end
       end
@@ -53,8 +59,8 @@ module Leda
 
         it 'runs dump on every store in that unit' do
           expect(actual_calls).to eq([
-            ['people', 'mock_a', ['/base/dev/people/mock_a']],
-            ['people', 'mock_b', ['/base/dev/people/mock_b']]
+            ['people', 'mock_a', [root_s + '/base/dev/people/mock_a']],
+            ['people', 'mock_b', [root_s + '/base/dev/people/mock_b']]
           ])
         end
       end
@@ -66,8 +72,8 @@ module Leda
 
         it 'runs dump on every store of that type' do
           expect(actual_calls).to eq([
-            ['tlus', 'mock_b', ['/base/dev/tlus/mock_b']],
-            ['people', 'mock_b', ['/base/dev/people/mock_b']]
+            ['tlus', 'mock_b', [root_s + '/base/dev/tlus/mock_b']],
+            ['people', 'mock_b', [root_s + '/base/dev/people/mock_b']]
           ])
         end
       end
@@ -79,7 +85,7 @@ module Leda
 
         it 'runs dump on just that combination' do
           expect(actual_calls).to eq([
-            ['tlus', 'mock_b', ['/base/dev/tlus/mock_b']]
+            ['tlus', 'mock_b', [root_s + '/base/dev/tlus/mock_b']]
           ])
         end
       end
@@ -94,6 +100,15 @@ module Leda
         it 'throws an exception' do
           expect { runner.dump('people', 'mock_c') }.to raise_error(/No data configured that matches people:mock_c/)
         end
+      end
+    end
+
+    describe '#dump_relative_paths' do
+      it 'returns the set of paths for the selected parameters' do
+        expect(runner.dump_relative_paths('people').map(&:to_s)).to eq([
+          'base/dev/people/mock_a',
+          'base/dev/people/mock_b'
+        ])
       end
     end
 
@@ -117,10 +132,10 @@ module Leda
 
         it 'runs restore_from on every configured store' do
           expect(actual_calls).to eq([
-            ['tlus', 'mock_c', ['/base/prod/tlus/mock_c']],
-            ['tlus', 'mock_b', ['/base/prod/tlus/mock_b']],
-            ['people', 'mock_a', ['/base/prod/people/mock_a']],
-            ['people', 'mock_b', ['/base/prod/people/mock_b']]
+            ['tlus', 'mock_c', [root_s + '/base/prod/tlus/mock_c']],
+            ['tlus', 'mock_b', [root_s + '/base/prod/tlus/mock_b']],
+            ['people', 'mock_a', [root_s + '/base/prod/people/mock_a']],
+            ['people', 'mock_b', [root_s + '/base/prod/people/mock_b']]
           ])
         end
       end
@@ -132,8 +147,8 @@ module Leda
 
         it 'runs restore_from on every store in that unit' do
           expect(actual_calls).to eq([
-            ['people', 'mock_a', ['/base/stg/people/mock_a']],
-            ['people', 'mock_b', ['/base/stg/people/mock_b']]
+            ['people', 'mock_a', [root_s + '/base/stg/people/mock_a']],
+            ['people', 'mock_b', [root_s + '/base/stg/people/mock_b']]
           ])
         end
       end
@@ -145,8 +160,8 @@ module Leda
 
         it 'runs restore_from on every store of that type' do
           expect(actual_calls).to eq([
-            ['tlus', 'mock_b', ['/base/local/tlus/mock_b']],
-            ['people', 'mock_b', ['/base/local/people/mock_b']]
+            ['tlus', 'mock_b', [root_s + '/base/local/tlus/mock_b']],
+            ['people', 'mock_b', [root_s + '/base/local/people/mock_b']]
           ])
         end
       end
@@ -158,7 +173,7 @@ module Leda
 
         it 'runs restore_from on just that combination' do
           expect(actual_calls).to eq([
-            ['tlus', 'mock_b', ['/base/super-prod/tlus/mock_b']]
+            ['tlus', 'mock_b', [root_s + '/base/super-prod/tlus/mock_b']]
           ])
         end
       end
